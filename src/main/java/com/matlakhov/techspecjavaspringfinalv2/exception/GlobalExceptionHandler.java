@@ -1,4 +1,4 @@
-package com.example.techspecjavaspringfinalv2.exception;
+package com.matlakhov.techspecjavaspringfinalv2.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.FieldError;

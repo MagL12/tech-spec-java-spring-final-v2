@@ -1,6 +1,6 @@
-package com.example.techspecjavaspringfinalv2.repository;
+package com.matlakhov.techspecjavaspringfinalv2.repository;
 
-import com.example.techspecjavaspringfinalv2.model.Subscription;
+import com.matlakhov.techspecjavaspringfinalv2.model.SubscriptionEntity;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -10,14 +10,14 @@ import java.util.List;
  * Репозиторий для работы с сущностью Subscription.
  * Предоставляет методы для доступа и управления данными о подписках в базе данных.
  */
-public interface SubscriptionRepository extends JpaRepository<Subscription, Long> {
+public interface SubscriptionRepository extends JpaRepository<SubscriptionEntity, Long> {
     /**
      * Находит все подписки пользователя по его идентификатору.
      *
      * @param userId идентификатор пользователя
      * @return список подписок, принадлежащих пользователю
      */
-    List<Subscription> findByUserId(Long userId);
+    List<SubscriptionEntity> findByUserEntityId(Long userId);
 
     /**
      * Находит топ подписок по популярности.
@@ -28,7 +28,7 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Long
      */
     @Query("""
                 SELECT s.serviceName, COUNT(s) 
-                  FROM Subscription s 
+                  FROM SubscriptionEntity s 
                  WHERE s.serviceName IS NOT NULL AND s.serviceName <> '' 
               GROUP BY s.serviceName 
               ORDER BY COUNT(s) DESC
@@ -42,5 +42,5 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Long
      * @param serviceName название сервиса
      * @return true, если подписка существует, иначе false
      */
-    boolean existsByUserIdAndServiceName(Long userId, String serviceName);
+    boolean existsByUserEntityIdAndServiceName(Long userId, String serviceName);
 }

@@ -1,12 +1,12 @@
-package com.example.techspecjavaspringfinalv2.repository;
+package com.matlakhov.techspecjavaspringfinalv2.repository;
 
-import com.example.techspecjavaspringfinalv2.model.User;
+import com.matlakhov.techspecjavaspringfinalv2.model.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 /**
  * Репозиторий для работы с сущностью User.
  * Предоставляет методы для проверки существования пользователей по имени и email.
  */
-public interface UserRepository extends JpaRepository<User, Long> {
+public interface UserRepository extends JpaRepository<UserEntity, Long> {
     /**
      * Проверяет, существует ли пользователь с указанным именем.
      *

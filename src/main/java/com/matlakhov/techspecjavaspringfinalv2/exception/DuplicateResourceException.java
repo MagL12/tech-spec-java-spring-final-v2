@@ -1,4 +1,4 @@
-package com.example.techspecjavaspringfinalv2.exception;
+package com.matlakhov.techspecjavaspringfinalv2.exception;
 /**
  * Пользовательское исключение, которое возникает при попытке создать или обновить ресурс (например, пользователя или подписку),
  * если ресурс с указанными данными (имя пользователя, email или название сервиса) уже существует.

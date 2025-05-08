@@ -1,9 +1,10 @@
-package com.example.techspecjavaspringfinalv2.model;
+package com.matlakhov.techspecjavaspringfinalv2.model;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 /**
@@ -13,7 +14,8 @@ import java.util.List;
 @Entity
 @Table(name = "users")
 @Data
-public class User {
+@NoArgsConstructor
+public class UserEntity {
     /**
      * Уникальный идентификатор пользователя.
      * Генерируется автоматически с использованием стратегии IDENTITY.
@@ -46,6 +48,6 @@ public class User {
      * Связь один-ко-многим с сущностью Subscription, с каскадным удалением.
      */
     @JsonManagedReference
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Subscription> subscriptions;
+    @OneToMany(mappedBy = "userEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<SubscriptionEntity> subscriptionEntities;
 }

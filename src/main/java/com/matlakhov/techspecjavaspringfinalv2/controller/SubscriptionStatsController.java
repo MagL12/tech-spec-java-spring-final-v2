@@ -1,7 +1,8 @@
-package com.example.techspecjavaspringfinalv2.controller;
+package com.matlakhov.techspecjavaspringfinalv2.controller;
 
-import com.example.techspecjavaspringfinalv2.service.SubscriptionService;
+import com.matlakhov.techspecjavaspringfinalv2.service.SubscriptionService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -15,11 +16,11 @@ import java.util.List;
  * Контроллер для получения статистических данных о подписках.
  * Предоставляет эндпоинт для получения топ-3 популярных подписок.
  */
+@Slf4j
 @RestController
 @RequestMapping("/subscriptions")
 @RequiredArgsConstructor
 public class SubscriptionStatsController {
-    private static final Logger logger = LoggerFactory.getLogger(SubscriptionStatsController.class);
     private final SubscriptionService subscriptionService;
 
     /**
@@ -30,11 +31,11 @@ public class SubscriptionStatsController {
      */
     @GetMapping("/top")
     public ResponseEntity<List<String>> getTopSubscriptions() {
-        logger.info("Запрос на получение топ-3 популярных подписок");
+        log.info("Запрос на получение топ-3 популярных подписок");
 
         List<String> topSubscriptions = subscriptionService.getTopSubscriptions();
 
-        logger.info("Получен список топ-3 подписок: {}", topSubscriptions);
+        log.info("Получен список топ-3 подписок: {}", topSubscriptions);
 
         return ResponseEntity.ok(topSubscriptions);
     }

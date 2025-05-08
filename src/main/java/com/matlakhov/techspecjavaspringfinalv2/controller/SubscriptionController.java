@@ -1,12 +1,10 @@
-package com.example.techspecjavaspringfinalv2.controller;
+package com.matlakhov.techspecjavaspringfinalv2.controller;
 
-import com.example.techspecjavaspringfinalv2.dto.SubscriptionCreateDto;
-import com.example.techspecjavaspringfinalv2.dto.SubscriptionResponseDto;
-import com.example.techspecjavaspringfinalv2.service.SubscriptionService;
+import com.matlakhov.techspecjavaspringfinalv2.dto.SubscriptionResponseDto;
+import com.matlakhov.techspecjavaspringfinalv2.service.SubscriptionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,18 +14,18 @@ import java.util.List;
  * Контроллер для управления подписками пользователей.
  * Обрабатывает запросы, связанные с добавлением, получением и удалением подписок для конкретного пользователя.
  */
+@Slf4j
 @RestController
 @RequestMapping("/users/{id}/subscriptions")
 @RequiredArgsConstructor
 public class SubscriptionController {
-    private static final Logger logger = LoggerFactory.getLogger(SubscriptionController.class);
     private final SubscriptionService subscriptionService;
 
     /**
      * Добавляет новую подписку для пользователя.
      *
      * @param userId   идентификатор пользователя
-     * @param createDto DTO с данными для создания подписки
+     * @param dto DTO с данными для создания подписки
      * @return ResponseEntity с созданным DTO подписки и статусом 201 (Created), включая заголовок Location
      * @throws org.springframework.web.bind.MethodArgumentNotValidException если данные в createDto не прошли валидацию
      * @throws com.example.exception.DuplicateResourceException если подписка уже существует
@@ -36,10 +34,10 @@ public class SubscriptionController {
     @PostMapping
     public ResponseEntity<SubscriptionResponseDto> addSubscription(
             @PathVariable("id") Long userId,
-            @Valid @RequestBody SubscriptionCreateDto createDto) {
-        logger.info("Добавление подписки для пользователя с ID: {} и сервисом: {}", userId, createDto.getServiceName());
-        SubscriptionResponseDto created = subscriptionService.addSubscription(userId, createDto);
-        logger.info("Подписка добавлена с ID: {}", created.getId());
+            @Valid @RequestBody SubscriptionResponseDto dto) {
+        log.info("Добавление подписки для пользователя с ID: {} и сервисом: {}", userId, dto.getServiceName());
+        SubscriptionResponseDto created = subscriptionService.addSubscription(userId, dto);
+        log.info("Подписка добавлена с ID: {}", created.getId());
         return ResponseEntity
                 .created(URI.create("/users/" + userId + "/subscriptions/" + created.getId()))
                 .body(created);
@@ -54,9 +52,9 @@ public class SubscriptionController {
      */
     @GetMapping
     public ResponseEntity<List<SubscriptionResponseDto>> getSubscriptions(@PathVariable("id") Long userId) {
-        logger.info("Получение подписок для пользователя с ID: {}", userId);
+        log.info("Получение подписок для пользователя с ID: {}", userId);
         List<SubscriptionResponseDto> list = subscriptionService.getUserSubscriptions(userId);
-        logger.info("Найдено {} подписок для пользователя с ID: {}", list.size(), userId);
+        log.info("Найдено {} подписок для пользователя с ID: {}", list.size(), userId);
         return ResponseEntity.ok(list);
     }
 
@@ -72,9 +70,9 @@ public class SubscriptionController {
     public ResponseEntity<Void> deleteSubscription(
             @PathVariable("id") Long userId,
             @PathVariable("sub_id") Long subId) {
-        logger.info("Удаление подписки с ID: {} для пользователя с ID: {}", subId, userId);
+        log.info("Удаление подписки с ID: {} для пользователя с ID: {}", subId, userId);
         subscriptionService.deleteSubscription(userId, subId);
-        logger.info("Подписка удалена с ID: {}", subId);
+        log.info("Подписка удалена с ID: {}", subId);
         return ResponseEntity.noContent().build();
     }
 }

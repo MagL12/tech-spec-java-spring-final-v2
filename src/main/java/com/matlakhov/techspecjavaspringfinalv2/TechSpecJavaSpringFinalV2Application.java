@@ -1,4 +1,4 @@
-package com.example.techspecjavaspringfinalv2;
+package com.matlakhov.techspecjavaspringfinalv2;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

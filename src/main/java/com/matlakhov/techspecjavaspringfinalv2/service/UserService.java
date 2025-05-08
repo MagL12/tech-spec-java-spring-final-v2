@@ -1,13 +1,12 @@
-package com.example.techspecjavaspringfinalv2.service;
+package com.matlakhov.techspecjavaspringfinalv2.service;
 
-import com.example.techspecjavaspringfinalv2.dto.DtoMapper;
-import com.example.techspecjavaspringfinalv2.dto.UserCreateDto;
-import com.example.techspecjavaspringfinalv2.dto.UserResponseDto;
-import com.example.techspecjavaspringfinalv2.dto.UserUpdateDto;
-import com.example.techspecjavaspringfinalv2.exception.DuplicateResourceException;
-import com.example.techspecjavaspringfinalv2.exception.ResourceNotFoundException;
-import com.example.techspecjavaspringfinalv2.model.User;
-import com.example.techspecjavaspringfinalv2.repository.UserRepository;
+import com.matlakhov.techspecjavaspringfinalv2.mappers.SubscriptionMapper;
+import com.matlakhov.techspecjavaspringfinalv2.dto.UserResponseDto;
+import com.matlakhov.techspecjavaspringfinalv2.exception.DuplicateResourceException;
+import com.matlakhov.techspecjavaspringfinalv2.exception.ResourceNotFoundException;
+import com.matlakhov.techspecjavaspringfinalv2.mappers.UserMapper;
+import com.matlakhov.techspecjavaspringfinalv2.model.UserEntity;
+import com.matlakhov.techspecjavaspringfinalv2.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,13 +24,13 @@ import org.springframework.stereotype.Service;
  * </ul>
  *
  * @see UserRepository
- * @see DtoMapper
+ * @see SubscriptionMapper
  */
 @RequiredArgsConstructor
 @Service
 public class UserService {
     private final UserRepository userRepository;
-    private final DtoMapper mapper;
+    private final UserMapper mapper;
 
 
     /**
@@ -48,18 +47,17 @@ public class UserService {
      * @throws DuplicateResourceException если имя пользователя или email уже существуют
      */
     @Transactional
-    public UserResponseDto createUser(UserCreateDto dto) {
+    public UserResponseDto createUser(UserResponseDto dto) {
         if (userRepository.existsByUsername(dto.getUsername())) {
             throw new DuplicateResourceException("Username already exists");
         }
         if (userRepository.existsByEmail(dto.getEmail())) {
             throw new DuplicateResourceException("Email already exists");
         }
-        User user = new User();
-        user.setUsername(dto.getUsername());
-        user.setEmail(dto.getEmail());
-        User saved = userRepository.save(user);
-        return mapper.toUserDto(saved);
+
+        UserEntity userEntity = mapper.toEntity(dto);
+        UserEntity savedUser = userRepository.save(userEntity);
+        return mapper.toDto(savedUser);
     }
 
     /**
@@ -71,9 +69,9 @@ public class UserService {
      */
     @Transactional(readOnly = true)
     public UserResponseDto getUser(Long id) {
-        User user = userRepository.findById(id)
+        UserEntity userEntity = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        return mapper.toUserDto(user);
+        return mapper.toDto(userEntity);
     }
 
     /**
@@ -88,23 +86,23 @@ public class UserService {
      * @throws DuplicateResourceException если новые значения имени/email уже заняты
      */
     @Transactional
-    public UserResponseDto updateUser(Long id, UserUpdateDto dto) {
-        User user = userRepository.findById(id)
+    public UserResponseDto updateUser(Long id, UserResponseDto dto) {
+        UserEntity userEntity = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        if (dto.getUsername() != null && !dto.getUsername().equals(user.getUsername())) {
+        if (dto.getUsername() != null && !dto.getUsername().equals(userEntity.getUsername())) {
             if (userRepository.existsByUsername(dto.getUsername())) {
                 throw new DuplicateResourceException("Username already exists");
             }
-            user.setUsername(dto.getUsername());
+            userEntity.setUsername(dto.getUsername());
         }
-        if (dto.getEmail() != null && !dto.getEmail().equals(user.getEmail())) {
+        if (dto.getEmail() != null && !dto.getEmail().equals(userEntity.getEmail())) {
             if (userRepository.existsByEmail(dto.getEmail())) {
                 throw new DuplicateResourceException("Email already exists");
             }
-            user.setEmail(dto.getEmail());
+            userEntity.setEmail(dto.getEmail());
         }
-        User updated = userRepository.save(user);
-        return mapper.toUserDto(updated);
+        UserEntity updated = userRepository.save(userEntity);
+        return mapper.toDto(updated);
     }
 
     /**

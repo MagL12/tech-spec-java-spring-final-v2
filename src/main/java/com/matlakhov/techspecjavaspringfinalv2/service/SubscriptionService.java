@@ -1,14 +1,13 @@
-package com.example.techspecjavaspringfinalv2.service;
+package com.matlakhov.techspecjavaspringfinalv2.service;
 
-import com.example.techspecjavaspringfinalv2.dto.DtoMapper;
-import com.example.techspecjavaspringfinalv2.dto.SubscriptionCreateDto;
-import com.example.techspecjavaspringfinalv2.dto.SubscriptionResponseDto;
-import com.example.techspecjavaspringfinalv2.dto.UserResponseDto;
-import com.example.techspecjavaspringfinalv2.exception.DuplicateResourceException;
-import com.example.techspecjavaspringfinalv2.exception.ResourceNotFoundException;
-import com.example.techspecjavaspringfinalv2.model.Subscription;
-import com.example.techspecjavaspringfinalv2.model.User;
-import com.example.techspecjavaspringfinalv2.repository.SubscriptionRepository;
+import com.matlakhov.techspecjavaspringfinalv2.mappers.SubscriptionMapper;
+import com.matlakhov.techspecjavaspringfinalv2.dto.SubscriptionResponseDto;
+import com.matlakhov.techspecjavaspringfinalv2.dto.UserResponseDto;
+import com.matlakhov.techspecjavaspringfinalv2.exception.DuplicateResourceException;
+import com.matlakhov.techspecjavaspringfinalv2.exception.ResourceNotFoundException;
+import com.matlakhov.techspecjavaspringfinalv2.model.SubscriptionEntity;
+import com.matlakhov.techspecjavaspringfinalv2.model.UserEntity;
+import com.matlakhov.techspecjavaspringfinalv2.repository.SubscriptionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.PageRequest;
@@ -26,7 +25,7 @@ import java.util.stream.Collectors;
 public class SubscriptionService {
     private final SubscriptionRepository subscriptionRepository;
     private final UserService userService;
-    private final DtoMapper mapper;
+    private final SubscriptionMapper mapper;
 
     /**
      * Добавляет новую подписку для пользователя.
@@ -38,17 +37,18 @@ public class SubscriptionService {
      * @throws ResourceNotFoundException если пользователь не найден
      */
     @Transactional
-    public SubscriptionResponseDto addSubscription(Long userId, SubscriptionCreateDto dto) {
-        UserResponseDto userDto = userService.getUser(userId); // проверка существования
-        User user = new User(); user.setId(userDto.getId()); // для existsBy
-        if (subscriptionRepository.existsByUserIdAndServiceName(userId, dto.getServiceName())) {
+    public SubscriptionResponseDto addSubscription(Long userId, SubscriptionResponseDto dto) {
+        UserResponseDto userDto = userService.getUser(userId);
+        UserEntity userEntity = new UserEntity();
+        userEntity.setId(userDto.getId());
+        if (subscriptionRepository.existsByUserEntityIdAndServiceName(userId, dto.getServiceName())) {
             throw new DuplicateResourceException("Subscription already exists");
         }
-        Subscription sub = new Subscription();
-        sub.setServiceName(dto.getServiceName());
-        sub.setUser(user);
-        Subscription saved = subscriptionRepository.save(sub);
-        return mapper.toSubscriptionDto(saved);
+
+        SubscriptionEntity sub = mapper.toEntity(dto);
+        sub.setUserEntity(userEntity);
+        SubscriptionEntity savedSubscription = subscriptionRepository.save(sub);
+        return mapper.toDto(savedSubscription);
     }
 
     /**
@@ -60,10 +60,10 @@ public class SubscriptionService {
      */
     @Transactional(readOnly = true)
     public List<SubscriptionResponseDto> getUserSubscriptions(Long userId) {
-        List<Subscription> list = subscriptionRepository.findByUserId(userId);
+        List<SubscriptionEntity> list = subscriptionRepository.findByUserEntityId(userId);
         return list.stream()
-                .map(mapper::toSubscriptionDto)
-                .collect(Collectors.toList());
+                .map(mapper::toDto)
+                .toList();
     }
 
     /**
@@ -75,9 +75,9 @@ public class SubscriptionService {
      */
     @Transactional
     public void deleteSubscription(Long userId, Long subId) {
-        Subscription sub = subscriptionRepository.findById(subId)
+        SubscriptionEntity sub = subscriptionRepository.findById(subId)
                 .orElseThrow(() -> new ResourceNotFoundException("Subscription not found"));
-        if (!sub.getUser().getId().equals(userId)) {
+        if (!sub.getUserEntity().getId().equals(userId)) {
             throw new ResourceNotFoundException("Subscription does not belong to user");
         }
         subscriptionRepository.deleteById(subId);
@@ -94,6 +94,6 @@ public class SubscriptionService {
                 .findTopSubscriptions(PageRequest.of(0, 3))
                 .stream()
                 .map(row -> (String) row[0])
-                .collect(Collectors.toList());
+                .toList();
     }
 }

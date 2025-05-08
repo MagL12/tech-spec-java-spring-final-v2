@@ -1,4 +1,4 @@
-package com.example.techspecjavaspringfinalv2.model;
+package com.matlakhov.techspecjavaspringfinalv2.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
@@ -10,7 +10,7 @@ import lombok.*;
 @Entity
 @Table(name = "subscriptions")
 @Data
-public class Subscription {
+public class SubscriptionEntity {
     /**
      * Уникальный идентификатор подписки.
      * Генерируется автоматически с использованием стратегии IDENTITY.
@@ -35,5 +35,5 @@ public class Subscription {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     @JsonBackReference
-    private User user;
+    private UserEntity userEntity;
 }

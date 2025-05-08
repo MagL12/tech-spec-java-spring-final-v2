@@ -1,13 +1,10 @@
-package com.example.techspecjavaspringfinalv2.controller;
+package com.matlakhov.techspecjavaspringfinalv2.controller;
 
-import com.example.techspecjavaspringfinalv2.dto.UserCreateDto;
-import com.example.techspecjavaspringfinalv2.dto.UserResponseDto;
-import com.example.techspecjavaspringfinalv2.dto.UserUpdateDto;
-import com.example.techspecjavaspringfinalv2.service.UserService;
+import com.matlakhov.techspecjavaspringfinalv2.dto.UserResponseDto;
+import com.matlakhov.techspecjavaspringfinalv2.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,11 +13,11 @@ import java.net.URI;
  * Контроллер для управления пользователями.
  * Предоставляет REST API для создания, получения, обновления и удаления пользователей.
  */
+@Slf4j
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor
 public class UserController {
-    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
     private final UserService userService;
 
     /**
@@ -32,10 +29,10 @@ public class UserController {
      * @throws com.example.exception.DuplicateResourceException если имя пользователя или email уже существуют
      */
     @PostMapping
-    public ResponseEntity<UserResponseDto> createUser(@Valid @RequestBody UserCreateDto createDto) {
-        logger.info("Создание пользователя с именем: {}", createDto.getUsername());
-        UserResponseDto created = userService.createUser(createDto);
-        logger.info("Пользователь создан с ID: {}", created.getId());
+    public ResponseEntity<UserResponseDto> createUser(@Valid @RequestBody UserResponseDto dto) {
+        log.info("Создание пользователя с именем: {}", dto.getUsername());
+        UserResponseDto created = userService.createUser(dto);
+        log.info("Пользователь создан с ID: {}", created.getId());
         return ResponseEntity.created(URI.create("/users/" + created.getId())).body(created);
     }
 
@@ -48,7 +45,7 @@ public class UserController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<UserResponseDto> getUser(@PathVariable("id") Long id) {
-        logger.info("Получение пользователя с ID: {}", id);
+        log.info("Получение пользователя с ID: {}", id);
         UserResponseDto user = userService.getUser(id);
         return ResponseEntity.ok(user);
     }
@@ -64,10 +61,10 @@ public class UserController {
      * @throws com.example.exception.ResourceNotFoundException если пользователь не найден
      */
     @PutMapping("/{id}")
-    public ResponseEntity<UserResponseDto> updateUser(@PathVariable("id") Long id, @Valid @RequestBody UserUpdateDto updateDto) {
-        logger.info("Обновление пользователя с ID: {}", id);
+    public ResponseEntity<UserResponseDto> updateUser(@PathVariable("id") Long id, @Valid @RequestBody UserResponseDto updateDto) {
+        log.info("Обновление пользователя с ID: {}", id);
         UserResponseDto updated = userService.updateUser(id, updateDto);
-        logger.info("Пользователь обновлен с ID: {}", updated.getId());
+        log.info("Пользователь обновлен с ID: {}", updated.getId());
         return ResponseEntity.ok(updated);
     }
 
@@ -80,9 +77,9 @@ public class UserController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable("id") Long id) {
-        logger.info("Удаление пользователя с ID: {}", id);
+        log.info("Удаление пользователя с ID: {}", id);
         userService.deleteUser(id);
-        logger.info("Пользователь удален с ID: {}", id);
+        log.info("Пользователь удален с ID: {}", id);
         return ResponseEntity.noContent().build();
     }
 }

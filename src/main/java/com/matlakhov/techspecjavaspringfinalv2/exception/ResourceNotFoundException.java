@@ -1,4 +1,4 @@
-package com.example.techspecjavaspringfinalv2.exception;
+package com.matlakhov.techspecjavaspringfinalv2.exception;
 /**
  * Пользовательское исключение, которое возникает при попытке доступа к ресурсу (например, пользователю или подписке),
  * который не существует в базе данных.
