@@ -11,6 +11,7 @@ import com.matlakhov.techspecjavaspringfinalv2.dto.UserResponseDto;
 import com.matlakhov.techspecjavaspringfinalv2.model.SubscriptionEntity;
 import com.matlakhov.techspecjavaspringfinalv2.model.UserEntity;
 import com.matlakhov.techspecjavaspringfinalv2.repository.SubscriptionRepository;
+import com.matlakhov.techspecjavaspringfinalv2.repository.UserRepository;
 import com.matlakhov.techspecjavaspringfinalv2.service.SubscriptionService;
 import com.matlakhov.techspecjavaspringfinalv2.service.UserService;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,8 @@ import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
 class SubscriptionEntityServiceTest {
+    @Mock
+    private UserRepository userRepository;
 
     @Mock
     private SubscriptionRepository subscriptionRepository;
@@ -36,45 +39,49 @@ class SubscriptionEntityServiceTest {
     @Mock
     private SubscriptionMapper subscriptionMapper;
 
+
+
     @InjectMocks
     private SubscriptionService subscriptionService; // Mockito автоматически внедрит моки
 
     @Test
-    void testAddSubscription_UserExists_SubscriptionNotDuplicate_ShouldReturnSubscriptionResponseDto() {
-        // Arrange
+    void testAddSubscription_UserExists_SubscriptionNotDuplicate_ShouldReturnDto() {
         Long userId = 1L;
         SubscriptionResponseDto dto = new SubscriptionResponseDto();
         dto.setServiceName("Netflix");
 
-        UserResponseDto userDto = new UserResponseDto();
-        userDto.setId(userId);
-        userDto.setUsername("Alice");
-        userDto.setEmail("alice@example.com");
+        // Мокаем userRepository, а не userService
+        UserEntity userEntity = new UserEntity();
+        userEntity.setId(userId);
+        when(userRepository.findById(userId))
+                .thenReturn(Optional.of(userEntity));
 
+        // Проверка дубликата
+        when(subscriptionRepository.existsByUserEntityIdAndServiceName(userId, "Netflix"))
+                .thenReturn(false);
+
+        // Маппинг entity <-> dto
         SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
         subscriptionEntity.setId(101L);
         subscriptionEntity.setServiceName("Netflix");
-        subscriptionEntity.setUserEntity(new UserEntity());
-        subscriptionEntity.getUserEntity().setId(userId);
+        subscriptionEntity.setUserEntity(userEntity);
+
+        when(subscriptionMapper.toEntity(dto)).thenReturn(subscriptionEntity);
+        when(subscriptionRepository.save(subscriptionEntity)).thenReturn(subscriptionEntity);
 
         SubscriptionResponseDto responseDto = new SubscriptionResponseDto();
         responseDto.setId(101L);
         responseDto.setServiceName("Netflix");
-
-        when(userService.getUser(userId)).thenReturn(userDto);
-        when(subscriptionRepository.existsByUserEntityIdAndServiceName(userId, "Netflix")).thenReturn(false);
         when(subscriptionMapper.toDto(subscriptionEntity)).thenReturn(responseDto);
-        when(subscriptionMapper.toEntity(dto)).thenReturn(subscriptionEntity);
-        when(subscriptionRepository.save(any(SubscriptionEntity.class))).thenReturn(subscriptionEntity);
 
         // Act
         SubscriptionResponseDto result = subscriptionService.addSubscription(userId, dto);
 
         // Assert
         assertNotNull(result);
+        assertEquals(101L, result.getId());
         assertEquals("Netflix", result.getServiceName());
-        verify(subscriptionRepository, times(1)).existsByUserEntityIdAndServiceName(userId, "Netflix");
-        verify(subscriptionRepository, times(1)).save(any(SubscriptionEntity.class));
+        verify(subscriptionRepository, times(1)).save(subscriptionEntity);
     }
 
     @Test

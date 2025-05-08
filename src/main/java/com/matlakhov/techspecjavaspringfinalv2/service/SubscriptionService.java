@@ -8,6 +8,7 @@ import com.matlakhov.techspecjavaspringfinalv2.exception.ResourceNotFoundExcepti
 import com.matlakhov.techspecjavaspringfinalv2.model.SubscriptionEntity;
 import com.matlakhov.techspecjavaspringfinalv2.model.UserEntity;
 import com.matlakhov.techspecjavaspringfinalv2.repository.SubscriptionRepository;
+import com.matlakhov.techspecjavaspringfinalv2.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.PageRequest;
@@ -26,7 +27,7 @@ public class SubscriptionService {
     private final SubscriptionRepository subscriptionRepository;
     private final UserService userService;
     private final SubscriptionMapper mapper;
-
+    private final UserRepository userRepository;
     /**
      * Добавляет новую подписку для пользователя.
      *
@@ -38,9 +39,9 @@ public class SubscriptionService {
      */
     @Transactional
     public SubscriptionResponseDto addSubscription(Long userId, SubscriptionResponseDto dto) {
-        UserResponseDto userDto = userService.getUser(userId);
-        UserEntity userEntity = new UserEntity();
-        userEntity.setId(userDto.getId());
+        UserEntity userEntity = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
         if (subscriptionRepository.existsByUserEntityIdAndServiceName(userId, dto.getServiceName())) {
             throw new DuplicateResourceException("Subscription already exists");
         }
