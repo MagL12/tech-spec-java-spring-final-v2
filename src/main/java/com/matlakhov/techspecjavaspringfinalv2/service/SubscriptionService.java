@@ -12,12 +12,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
+import java.time.LocalDateTime;
 
 /**
  * Сервис для управления подписками.
  * Предоставляет методы для создания, получения, удаления и анализа подписок.
+ */
+/**
+ * Сервис для управления подписками.
  */
 @RequiredArgsConstructor
 @Service
@@ -26,15 +29,6 @@ public class SubscriptionService {
     private final SubscriptionMapper subscriptionMapper;
     private final UserRepository userRepository;
 
-    /**
-     * Добавляет новую подписку для пользователя.
-     *
-     * @param userId идентификатор пользователя
-     * @param dto DTO с данными для создания подписки
-     * @return SubscriptionResponseDto с данными созданной подписки
-     * @throws DuplicateResourceException если подписка на указанный сервис уже существует для пользователя
-     * @throws ResourceNotFoundException если пользователь не найден
-     */
     @Transactional
     public SubscriptionDto addSubscription(Long userId, SubscriptionDto dto) {
         UserEntity userEntity = userRepository.findById(userId)
@@ -46,55 +40,42 @@ public class SubscriptionService {
 
         SubscriptionEntity sub = subscriptionMapper.toEntity(dto);
         sub.setUserEntity(userEntity);
-        sub.setIsDeleted(false); // Явно устанавливаем значение по умолчанию
+        sub.setIsDeleted(false);
+        sub.setStartDate(LocalDateTime.now());
+        sub.setEndDate(null);
         SubscriptionEntity savedSubscription = subscriptionRepository.save(sub);
         return subscriptionMapper.toDto(savedSubscription);
     }
 
-    /**
-     * Получает список активных подписок пользователя.
-     *
-     * @param userId идентификатор пользователя
-     * @return список SubscriptionResponseDto с данными о подписках
-     * @throws ResourceNotFoundException если пользователь не найден
-     */
     @Transactional(readOnly = true)
     public List<SubscriptionDto> getUserSubscriptions(Long userId) {
         userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        List<SubscriptionEntity> list = subscriptionRepository.findByUserEntityId(userId);
+        List<SubscriptionEntity> list = subscriptionRepository.findByUserEntityId(userId, LocalDateTime.now());
         return list.stream()
                 .map(subscriptionMapper::toDto)
                 .toList();
     }
 
-    /**
-     * Выполняет мягкое удаление подписки пользователя.
-     *
-     * @param userId идентификатор пользователя
-     * @param subId идентификатор подписки
-     * @throws ResourceNotFoundException если подписка не найдена или не принадлежит указанному пользователю
-     */
     @Transactional
     public void deleteSubscription(Long userId, Long subId) {
+        userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
         SubscriptionEntity sub = subscriptionRepository.findById(subId)
                 .orElseThrow(() -> new ResourceNotFoundException("Subscription not found"));
         if (!sub.getUserEntity().getId().equals(userId)) {
             throw new ResourceNotFoundException("Subscription does not belong to user");
         }
-        sub.setIsDeleted(true); // Мягкое удаление
+        sub.setIsDeleted(true);
+        sub.setEndDate(LocalDateTime.now());
         subscriptionRepository.save(sub);
     }
 
-    /**
-     * Получает топ-3 популярных подписок среди активных.
-     *
-     * @return список названий топ-3 сервисов по популярности
-     */
     @Transactional(readOnly = true)
     public List<String> getTopSubscriptions() {
         return subscriptionRepository
-                .findTopSubscriptions(PageRequest.of(0, 3))
+                .findTopSubscriptions(LocalDateTime.now(), PageRequest.of(0, 3))
                 .stream()
                 .map(row -> (String) row[0])
                 .toList();
