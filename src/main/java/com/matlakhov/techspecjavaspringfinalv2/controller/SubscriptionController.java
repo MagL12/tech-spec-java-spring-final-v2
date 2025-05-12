@@ -1,6 +1,6 @@
 package com.matlakhov.techspecjavaspringfinalv2.controller;
 
-import com.matlakhov.techspecjavaspringfinalv2.dto.SubscriptionResponseDto;
+import com.matlakhov.techspecjavaspringfinalv2.dto.SubscriptionDto;
 import com.matlakhov.techspecjavaspringfinalv2.service.SubscriptionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,11 +32,11 @@ public class SubscriptionController {
      * @throws com.example.exception.ResourceNotFoundException если пользователь не найден
      */
     @PostMapping
-    public ResponseEntity<SubscriptionResponseDto> addSubscription(
+    public ResponseEntity<SubscriptionDto> addSubscription(
             @PathVariable("id") Long userId,
-            @Valid @RequestBody SubscriptionResponseDto dto) {
+            @Valid @RequestBody SubscriptionDto dto) {
         log.info("Добавление подписки для пользователя с ID: {} и сервисом: {}", userId, dto.getServiceName());
-        SubscriptionResponseDto created = subscriptionService.addSubscription(userId, dto);
+        SubscriptionDto created = subscriptionService.addSubscription(userId, dto);
         log.info("Подписка добавлена с ID: {}", created.getId());
         return ResponseEntity
                 .created(URI.create("/users/" + userId + "/subscriptions/" + created.getId()))
@@ -51,9 +51,9 @@ public class SubscriptionController {
      * @throws com.example.exception.ResourceNotFoundException если пользователь не найден
      */
     @GetMapping
-    public ResponseEntity<List<SubscriptionResponseDto>> getSubscriptions(@PathVariable("id") Long userId) {
+    public ResponseEntity<List<SubscriptionDto>> getSubscriptions(@PathVariable("id") Long userId) {
         log.info("Получение подписок для пользователя с ID: {}", userId);
-        List<SubscriptionResponseDto> list = subscriptionService.getUserSubscriptions(userId);
+        List<SubscriptionDto> list = subscriptionService.getUserSubscriptions(userId);
         log.info("Найдено {} подписок для пользователя с ID: {}", list.size(), userId);
         return ResponseEntity.ok(list);
     }

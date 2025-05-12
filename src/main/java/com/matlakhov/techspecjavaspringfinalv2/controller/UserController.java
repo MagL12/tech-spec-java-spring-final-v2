@@ -1,6 +1,6 @@
 package com.matlakhov.techspecjavaspringfinalv2.controller;
 
-import com.matlakhov.techspecjavaspringfinalv2.dto.UserResponseDto;
+import com.matlakhov.techspecjavaspringfinalv2.dto.UserDto;
 import com.matlakhov.techspecjavaspringfinalv2.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,9 +29,9 @@ public class UserController {
      * @throws com.example.exception.DuplicateResourceException если имя пользователя или email уже существуют
      */
     @PostMapping
-    public ResponseEntity<UserResponseDto> createUser(@Valid @RequestBody UserResponseDto dto) {
+    public ResponseEntity<UserDto> createUser(@Valid @RequestBody UserDto dto) {
         log.info("Создание пользователя с именем: {}", dto.getUsername());
-        UserResponseDto created = userService.createUser(dto);
+        UserDto created = userService.createUser(dto);
         log.info("Пользователь создан с ID: {}", created.getId());
         return ResponseEntity.created(URI.create("/users/" + created.getId())).body(created);
     }
@@ -44,9 +44,9 @@ public class UserController {
      * @throws com.example.exception.ResourceNotFoundException если пользователь не найден
      */
     @GetMapping("/{id}")
-    public ResponseEntity<UserResponseDto> getUser(@PathVariable("id") Long id) {
+    public ResponseEntity<UserDto> getUser(@PathVariable("id") Long id) {
         log.info("Получение пользователя с ID: {}", id);
-        UserResponseDto user = userService.getUser(id);
+        UserDto user = userService.getUser(id);
         return ResponseEntity.ok(user);
     }
 
@@ -61,9 +61,9 @@ public class UserController {
      * @throws com.example.exception.ResourceNotFoundException если пользователь не найден
      */
     @PutMapping("/{id}")
-    public ResponseEntity<UserResponseDto> updateUser(@PathVariable("id") Long id, @Valid @RequestBody UserResponseDto updateDto) {
+    public ResponseEntity<UserDto> updateUser(@PathVariable("id") Long id, @Valid @RequestBody UserDto updateDto) {
         log.info("Обновление пользователя с ID: {}", id);
-        UserResponseDto updated = userService.updateUser(id, updateDto);
+        UserDto updated = userService.updateUser(id, updateDto);
         log.info("Пользователь обновлен с ID: {}", updated.getId());
         return ResponseEntity.ok(updated);
     }
@@ -79,7 +79,7 @@ public class UserController {
     public ResponseEntity<Void> deleteUser(@PathVariable("id") Long id) {
         log.info("Удаление пользователя с ID: {}", id);
         userService.deleteUser(id);
-        log.info("Пользователь удален с ID: {}", id);
+        log.info("Пользователь помечен как удаленный с ID: {}", id);
         return ResponseEntity.noContent().build();
     }
 }

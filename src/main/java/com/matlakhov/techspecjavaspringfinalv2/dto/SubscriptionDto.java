@@ -10,7 +10,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class SubscriptionResponseDto {
+public class SubscriptionDto {
     /**
      * Уникальный идентификатор подписки.
      */

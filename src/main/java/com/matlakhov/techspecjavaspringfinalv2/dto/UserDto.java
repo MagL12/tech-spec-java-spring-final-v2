@@ -11,7 +11,7 @@ import java.util.List;
  */
 @Getter
 @Setter
-public class UserResponseDto {
+public class UserDto {
 
     /**
      * Уникальный идентификатор пользователя.
@@ -54,5 +54,5 @@ public class UserResponseDto {
             accessMode = Schema.AccessMode.READ_ONLY, // Скрыть в запросах
             hidden = true // Полностью скрыть в Swagger UI
     )
-    private List<SubscriptionResponseDto> subscriptions;
+    private List<SubscriptionDto> subscriptions;
 }

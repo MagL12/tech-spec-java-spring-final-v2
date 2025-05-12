@@ -1,6 +1,6 @@
 package com.matlakhov.techspecjavaspringfinalv2.mappers;
 
-import com.matlakhov.techspecjavaspringfinalv2.dto.SubscriptionResponseDto;
+import com.matlakhov.techspecjavaspringfinalv2.dto.SubscriptionDto;
 import com.matlakhov.techspecjavaspringfinalv2.model.SubscriptionEntity;
 import org.mapstruct.Mapper;
 
@@ -19,8 +19,8 @@ public interface SubscriptionMapper {
      * @param subscriptionEntity сущность подписки
      * @return SubscriptionResponseDto объект DTO с данными подписки
      */
-    SubscriptionResponseDto toDto(SubscriptionEntity subscriptionEntity);
+    SubscriptionDto toDto(SubscriptionEntity subscriptionEntity);
 
-    SubscriptionEntity toEntity(SubscriptionResponseDto subscriptionDto);
+    SubscriptionEntity toEntity(SubscriptionDto subscriptionDto);
 
 }

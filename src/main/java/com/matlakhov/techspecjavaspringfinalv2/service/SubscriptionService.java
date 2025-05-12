@@ -1,8 +1,7 @@
 package com.matlakhov.techspecjavaspringfinalv2.service;
 
+import com.matlakhov.techspecjavaspringfinalv2.dto.SubscriptionDto;
 import com.matlakhov.techspecjavaspringfinalv2.mappers.SubscriptionMapper;
-import com.matlakhov.techspecjavaspringfinalv2.dto.SubscriptionResponseDto;
-import com.matlakhov.techspecjavaspringfinalv2.dto.UserResponseDto;
 import com.matlakhov.techspecjavaspringfinalv2.exception.DuplicateResourceException;
 import com.matlakhov.techspecjavaspringfinalv2.exception.ResourceNotFoundException;
 import com.matlakhov.techspecjavaspringfinalv2.model.SubscriptionEntity;
@@ -15,19 +14,18 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Сервис для управления подписками.
- * Предоставляет методы для добавления, получения, удаления подписок и получения статистики популярных подписок.
+ * Предоставляет методы для создания, получения, удаления и анализа подписок.
  */
 @RequiredArgsConstructor
 @Service
 public class SubscriptionService {
     private final SubscriptionRepository subscriptionRepository;
-    private final UserService userService;
-    private final SubscriptionMapper mapper;
+    private final SubscriptionMapper subscriptionMapper;
     private final UserRepository userRepository;
+
     /**
      * Добавляет новую подписку для пользователя.
      *
@@ -38,7 +36,7 @@ public class SubscriptionService {
      * @throws ResourceNotFoundException если пользователь не найден
      */
     @Transactional
-    public SubscriptionResponseDto addSubscription(Long userId, SubscriptionResponseDto dto) {
+    public SubscriptionDto addSubscription(Long userId, SubscriptionDto dto) {
         UserEntity userEntity = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
@@ -46,29 +44,32 @@ public class SubscriptionService {
             throw new DuplicateResourceException("Subscription already exists");
         }
 
-        SubscriptionEntity sub = mapper.toEntity(dto);
+        SubscriptionEntity sub = subscriptionMapper.toEntity(dto);
         sub.setUserEntity(userEntity);
+        sub.setIsDeleted(false); // Явно устанавливаем значение по умолчанию
         SubscriptionEntity savedSubscription = subscriptionRepository.save(sub);
-        return mapper.toDto(savedSubscription);
+        return subscriptionMapper.toDto(savedSubscription);
     }
 
     /**
-     * Получает список подписок пользователя.
+     * Получает список активных подписок пользователя.
      *
      * @param userId идентификатор пользователя
      * @return список SubscriptionResponseDto с данными о подписках
      * @throws ResourceNotFoundException если пользователь не найден
      */
     @Transactional(readOnly = true)
-    public List<SubscriptionResponseDto> getUserSubscriptions(Long userId) {
+    public List<SubscriptionDto> getUserSubscriptions(Long userId) {
+        userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         List<SubscriptionEntity> list = subscriptionRepository.findByUserEntityId(userId);
         return list.stream()
-                .map(mapper::toDto)
+                .map(subscriptionMapper::toDto)
                 .toList();
     }
 
     /**
-     * Удаляет подписку пользователя.
+     * Выполняет мягкое удаление подписки пользователя.
      *
      * @param userId идентификатор пользователя
      * @param subId идентификатор подписки
@@ -81,11 +82,12 @@ public class SubscriptionService {
         if (!sub.getUserEntity().getId().equals(userId)) {
             throw new ResourceNotFoundException("Subscription does not belong to user");
         }
-        subscriptionRepository.deleteById(subId);
+        sub.setIsDeleted(true); // Мягкое удаление
+        subscriptionRepository.save(sub);
     }
 
     /**
-     * Получает топ-3 популярных подписок.
+     * Получает топ-3 популярных подписок среди активных.
      *
      * @return список названий топ-3 сервисов по популярности
      */

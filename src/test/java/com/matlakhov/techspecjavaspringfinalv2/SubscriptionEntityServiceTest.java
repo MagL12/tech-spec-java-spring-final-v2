@@ -4,10 +4,9 @@ import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.any;
 
+import com.matlakhov.techspecjavaspringfinalv2.dto.SubscriptionDto;
 import com.matlakhov.techspecjavaspringfinalv2.exception.ResourceNotFoundException;
 import com.matlakhov.techspecjavaspringfinalv2.mappers.SubscriptionMapper;
-import com.matlakhov.techspecjavaspringfinalv2.dto.SubscriptionResponseDto;
-import com.matlakhov.techspecjavaspringfinalv2.dto.UserResponseDto;
 import com.matlakhov.techspecjavaspringfinalv2.model.SubscriptionEntity;
 import com.matlakhov.techspecjavaspringfinalv2.model.UserEntity;
 import com.matlakhov.techspecjavaspringfinalv2.repository.SubscriptionRepository;
@@ -47,7 +46,7 @@ class SubscriptionEntityServiceTest {
     @Test
     void testAddSubscription_UserExists_SubscriptionNotDuplicate_ShouldReturnDto() {
         Long userId = 1L;
-        SubscriptionResponseDto dto = new SubscriptionResponseDto();
+        SubscriptionDto dto = new SubscriptionDto();
         dto.setServiceName("Netflix");
 
         // Мокаем userRepository, а не userService
@@ -69,13 +68,13 @@ class SubscriptionEntityServiceTest {
         when(subscriptionMapper.toEntity(dto)).thenReturn(subscriptionEntity);
         when(subscriptionRepository.save(subscriptionEntity)).thenReturn(subscriptionEntity);
 
-        SubscriptionResponseDto responseDto = new SubscriptionResponseDto();
+        SubscriptionDto responseDto = new SubscriptionDto();
         responseDto.setId(101L);
         responseDto.setServiceName("Netflix");
         when(subscriptionMapper.toDto(subscriptionEntity)).thenReturn(responseDto);
 
         // Act
-        SubscriptionResponseDto result = subscriptionService.addSubscription(userId, dto);
+        SubscriptionDto result = subscriptionService.addSubscription(userId, dto);
 
         // Assert
         assertNotNull(result);
@@ -88,21 +87,28 @@ class SubscriptionEntityServiceTest {
     void testGetUserSubscriptions_UserHasSubscriptions_ShouldReturnSubscriptions() {
         // Arrange
         Long userId = 1L;
+        UserEntity user = new UserEntity();
+        user.setId(userId);
+
         SubscriptionEntity sub1 = new SubscriptionEntity();
         sub1.setId(101L);
         sub1.setServiceName("Netflix");
+        sub1.setIsDeleted(false);
+
         SubscriptionEntity sub2 = new SubscriptionEntity();
         sub2.setId(102L);
         sub2.setServiceName("YouTube Premium");
+        sub2.setIsDeleted(false);
 
         List<SubscriptionEntity> subscriptionEntities = List.of(sub1, sub2);
         when(subscriptionRepository.findByUserEntityId(userId)).thenReturn(subscriptionEntities);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user)); // Мок для проверки пользователя
 
-        SubscriptionResponseDto dto1 = new SubscriptionResponseDto();
+        SubscriptionDto dto1 = new SubscriptionDto();
         dto1.setId(101L);
         dto1.setServiceName("Netflix");
 
-        SubscriptionResponseDto dto2 = new SubscriptionResponseDto();
+        SubscriptionDto dto2 = new SubscriptionDto();
         dto2.setId(102L);
         dto2.setServiceName("YouTube Premium");
 
@@ -110,7 +116,7 @@ class SubscriptionEntityServiceTest {
         when(subscriptionMapper.toDto(sub2)).thenReturn(dto2);
 
         // Act
-        List<SubscriptionResponseDto> result = subscriptionService.getUserSubscriptions(userId);
+        List<SubscriptionDto> result = subscriptionService.getUserSubscriptions(userId);
 
         // Assert
         assertNotNull(result);
@@ -118,24 +124,31 @@ class SubscriptionEntityServiceTest {
         assertEquals("Netflix", result.get(0).getServiceName());
         assertEquals("YouTube Premium", result.get(1).getServiceName());
         verify(subscriptionRepository, times(1)).findByUserEntityId(userId);
+        verify(subscriptionMapper, times(2)).toDto(any(SubscriptionEntity.class));
+        verify(userRepository, times(1)).findById(userId); // Проверяем вызов мока
     }
 
     @Test
     void testGetUserSubscriptions_UserHasNoSubscriptions_ShouldReturnEmptyList() {
         // Arrange
         Long userId = 1L;
+        UserEntity user = new UserEntity();
+        user.setId(userId);
+
         when(subscriptionRepository.findByUserEntityId(userId)).thenReturn(Collections.emptyList());
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user)); // Мок для проверки пользователя
 
         // Act
-        List<SubscriptionResponseDto> result = subscriptionService.getUserSubscriptions(userId);
+        List<SubscriptionDto> result = subscriptionService.getUserSubscriptions(userId);
 
         // Assert
         assertNotNull(result);
         assertTrue(result.isEmpty());
         verify(subscriptionRepository, times(1)).findByUserEntityId(userId);
+        verify(subscriptionMapper, never()).toDto(any(SubscriptionEntity.class));
+        verify(userRepository, times(1)).findById(userId); // Проверяем вызов мока
     }
 
-    // --- deleteSubscription ---
 
     @Test
     void testDeleteSubscription_ExistingSubscription_BelongsToUser_ShouldDeleteSuccessfully() {
@@ -143,20 +156,26 @@ class SubscriptionEntityServiceTest {
         Long userId = 1L;
         Long subId = 101L;
 
-        SubscriptionEntity subscription = new SubscriptionEntity();
-        subscription.setId(subId);
-
         UserEntity user = new UserEntity();
         user.setId(userId);
+
+        SubscriptionEntity subscription = new SubscriptionEntity();
+        subscription.setId(subId);
+        subscription.setServiceName("Netflix");
+        subscription.setIsDeleted(false);
         subscription.setUserEntity(user);
 
         when(subscriptionRepository.findById(subId)).thenReturn(Optional.of(subscription));
+        when(subscriptionRepository.save(subscription)).thenReturn(subscription);
 
         // Act
         subscriptionService.deleteSubscription(userId, subId);
 
         // Assert
-        verify(subscriptionRepository, times(1)).deleteById(subId);
+        assertTrue(subscription.getIsDeleted());
+        verify(subscriptionRepository, times(1)).findById(subId);
+        verify(subscriptionRepository, times(1)).save(subscription);
+        verify(subscriptionRepository, never()).deleteById(anyLong());
     }
 
     @Test

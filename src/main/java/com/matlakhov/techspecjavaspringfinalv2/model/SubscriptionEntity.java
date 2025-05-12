@@ -36,4 +36,11 @@ public class SubscriptionEntity {
     @JoinColumn(name = "user_id", nullable = false)
     @JsonBackReference
     private UserEntity userEntity;
+
+    /**
+     * Флаг мягкого удаления подписки.
+     * По умолчанию false, что означает, что подписка активна.
+     */
+    @Column(name = "is_deleted", nullable = false)
+    private Boolean isDeleted = false;
 }

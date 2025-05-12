@@ -48,6 +48,10 @@ public class UserEntity {
      * Связь один-ко-многим с сущностью Subscription, с каскадным удалением.
      */
     @JsonManagedReference
-    @OneToMany(mappedBy = "userEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "userEntity", orphanRemoval = true)
     private List<SubscriptionEntity> subscriptionEntities;
+
+    @Column(name = "is_deleted")
+    private Boolean isDeleted;
 }
+
